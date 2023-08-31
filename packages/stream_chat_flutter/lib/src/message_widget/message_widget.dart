@@ -70,6 +70,7 @@ class StreamMessageWidget extends StatefulWidget {
     this.showUsername = true,
     this.showTimestamp = true,
     this.showReactions = true,
+    this.showReactionBrowser = true,
     this.showDeleteMessage = true,
     this.showEditMessage = true,
     this.showReplyMessage = true,
@@ -466,6 +467,11 @@ class StreamMessageWidget extends StatefulWidget {
   /// {@endtemplate}
   final void Function(String)? onLinkTap;
 
+  /// {@template showReactionBrowser}
+  /// Whether or not to show the reaction browser.
+  /// {@endtemplate}
+  final bool showReactionBrowser;
+
   /// {@template showReactionPicker}
   /// Whether or not to show the reaction picker.
   /// Used in [StreamMessageReactionsModal] and [MessageActionsModal].
@@ -640,6 +646,7 @@ class StreamMessageWidget extends StatefulWidget {
     bool? showInChannelIndicator,
     void Function(User)? onUserAvatarTap,
     void Function(String)? onLinkTap,
+    bool? showReactionBrowser,
     bool? showReactionPicker,
     @Deprecated('Use `showReactionPicker` instead')
     bool? showReactionPickerIndicator,
@@ -728,6 +735,7 @@ class StreamMessageWidget extends StatefulWidget {
           showInChannelIndicator ?? this.showInChannelIndicator,
       onUserAvatarTap: onUserAvatarTap ?? this.onUserAvatarTap,
       onLinkTap: onLinkTap ?? this.onLinkTap,
+      showReactionBrowser: showReactionBrowser ?? this.showReactionBrowser,
       showReactionPicker: showReactionPicker ??
           showReactionPickerIndicator ??
           this.showReactionPicker,
@@ -992,10 +1000,14 @@ class _StreamMessageWidgetState extends State<StreamMessageWidget>
                       showPinHighlight: widget.showPinHighlight,
                       showReactionPickerTail: widget.showReactionPickerTail,
                       showReactions: showReactions,
+                      showReactionBrowser: widget.showReactionBrowser,
                       onReactionsTap: () {
                         widget.onReactionsTap != null
                             ? widget.onReactionsTap!(widget.message)
-                            : _showMessageReactionsModal(context);
+                            : _showMessageReactionsModal(
+                                context,
+                                widget.showReactionBrowser,
+                              );
                       },
                       showUserAvatar: widget.showUserAvatar,
                       streamChat: _streamChat,
@@ -1179,7 +1191,11 @@ class _StreamMessageWidgetState extends State<StreamMessageWidget>
     ];
   }
 
-  void _showMessageReactionsModal(BuildContext context) {
+  void _showMessageReactionsModal(
+    BuildContext context,
+    bool showReactionBrowser,
+  ) {
+    if (!showReactionBrowser) return;
     final channel = StreamChannel.of(context).channel;
 
     showDialog(

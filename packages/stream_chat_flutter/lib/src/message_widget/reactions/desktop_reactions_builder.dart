@@ -17,6 +17,7 @@ class DesktopReactionsBuilder extends StatefulWidget {
   const DesktopReactionsBuilder({
     super.key,
     required this.shouldShowReactions,
+    required this.showReactionBrowser,
     required this.message,
     required this.messageTheme,
     this.borderSide,
@@ -25,6 +26,9 @@ class DesktopReactionsBuilder extends StatefulWidget {
 
   /// Whether reactions should be shown.
   final bool shouldShowReactions;
+
+  /// Whether reactions should be shown.
+  final bool showReactionBrowser;
 
   /// The message to show reactions for.
   final Message message;
@@ -106,10 +110,10 @@ class _DesktopReactionsBuilderState extends State<DesktopReactionsBuilder> {
       ),
       portalFollower: MouseRegion(
         onEnter: (event) async {
-          setState(() => _showReactionsPopup = !_showReactionsPopup);
+          _toggleBrowserVisibility();
         },
         onExit: (event) {
-          setState(() => _showReactionsPopup = !_showReactionsPopup);
+          _toggleBrowserVisibility();
         },
         child: ConstrainedBox(
           constraints: const BoxConstraints(
@@ -126,10 +130,10 @@ class _DesktopReactionsBuilderState extends State<DesktopReactionsBuilder> {
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         onEnter: (event) async {
-          setState(() => _showReactionsPopup = !_showReactionsPopup);
+          _toggleBrowserVisibility();
         },
         onExit: (event) {
-          setState(() => _showReactionsPopup = !_showReactionsPopup);
+          _toggleBrowserVisibility();
         },
         child: Padding(
           padding: EdgeInsets.symmetric(
@@ -160,6 +164,11 @@ class _DesktopReactionsBuilderState extends State<DesktopReactionsBuilder> {
         ),
       ),
     );
+  }
+
+  void _toggleBrowserVisibility() {
+    if (!widget.showReactionBrowser) return;
+    setState(() => _showReactionsPopup = !_showReactionsPopup);
   }
 }
 

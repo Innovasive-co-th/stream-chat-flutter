@@ -35,6 +35,7 @@ class MessageWidgetContent extends StatelessWidget {
     required this.showUserAvatar,
     required this.avatarWidth,
     required this.showReactions,
+    required this.showReactionBrowser,
     required this.onReactionsTap,
     required this.messageTheme,
     required this.shouldShowReactions,
@@ -113,6 +114,9 @@ class MessageWidgetContent extends StatelessWidget {
 
   /// {@macro showReactions}
   final bool showReactions;
+
+  /// {@macro showReactionBrowser}
+  final bool showReactionBrowser;
 
   /// Callback called when the reactions icon is tapped.
   ///
@@ -417,6 +421,7 @@ class MessageWidgetContent extends StatelessWidget {
                         message: message,
                         messageTheme: messageTheme,
                         shouldShowReactions: shouldShowReactions,
+                        showReactionBrowser: showReactionBrowser,
                         borderSide: borderSide,
                         reverse: reverse,
                       ),

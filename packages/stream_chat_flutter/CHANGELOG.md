@@ -1,3 +1,10 @@
+## Upcoming
+
+✅ Added
+
+- [#1722](https://github.com/GetStream/stream-chat-flutter/pull/1722)
+  Added `MessageWidget.showReactionBrowser` flag to control reactions browser visibility.
+
 ## 6.9.0
 
 🐞 Fixed

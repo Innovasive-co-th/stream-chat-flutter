@@ -43,7 +43,9 @@ class StreamMessageWidget extends StatefulWidget {
   StreamMessageWidget({
     super.key,
     required this.message,
-    required this.messageTheme,
+    required this.messageTheme, //* INNO NOTE
+    this.timestamp, //* INNO NOTE
+    this.username, //* INNO NOTE
     this.reverse = false,
     this.translateUserAvatar = true,
     this.shape,
@@ -282,6 +284,9 @@ class StreamMessageWidget extends StatefulWidget {
             );
           },
         }..addAll(customAttachmentBuilders ?? {});
+
+  final Widget Function(Message message)? timestamp; //* INNO NOTE
+  final Widget Function(Message message)? username; //* INNO NOTE
 
   /// {@template onMentionTap}
   /// Function called on mention tap
@@ -553,6 +558,8 @@ class StreamMessageWidget extends StatefulWidget {
   /// {@endtemplate}
   StreamMessageWidget copyWith({
     Key? key,
+    Widget Function(Message message)? timestamp, //* INNO NOTE
+    Widget Function(Message message)? username, //* INNO NOTE
     void Function(User)? onMentionTap,
     void Function(Message)? onThreadTap,
     void Function(Message)? onReplyTap,
@@ -642,7 +649,9 @@ class StreamMessageWidget extends StatefulWidget {
     };
 
     return StreamMessageWidget(
-      key: key ?? this.key,
+      key: key ?? key,
+      timestamp: timestamp ?? this.timestamp, //* INNO NOTE
+      username: username ?? this.username, //* INNO NOTE
       onMentionTap: onMentionTap ?? this.onMentionTap,
       onThreadTap: onThreadTap ?? this.onThreadTap,
       onReplyTap: onReplyTap ?? this.onReplyTap,
@@ -707,7 +716,7 @@ class StreamMessageWidget extends StatefulWidget {
   }
 
   @override
-  _StreamMessageWidgetState createState() => _StreamMessageWidgetState();
+  State<StreamMessageWidget> createState() => _StreamMessageWidgetState();
 }
 
 class _StreamMessageWidgetState extends State<StreamMessageWidget>
@@ -908,6 +917,8 @@ class _StreamMessageWidgetState extends State<StreamMessageWidget>
                     };
 
                     return MessageWidgetContent(
+                      timestamp: widget.timestamp,
+                      username: widget.username,
                       streamChatTheme: _streamChatTheme,
                       showUsername: showUsername,
                       showTimeStamp: showTimeStamp,
@@ -998,7 +1009,7 @@ class _StreamMessageWidgetState extends State<StreamMessageWidget>
           title: Text(context.translations.copyMessageLabel),
           onClick: () {
             Navigator.of(context, rootNavigator: true).pop();
-            Clipboard.setData(ClipboardData(text: widget.message.text));
+            Clipboard.setData(ClipboardData(text: widget.message.text ?? ''));
           },
         ),
       if (shouldShowEditAction) ...[
@@ -1157,7 +1168,7 @@ class _StreamMessageWidgetState extends State<StreamMessageWidget>
                     : DisplayWidget.show,
           ),
           onCopyTap: (message) =>
-              Clipboard.setData(ClipboardData(text: message.text)),
+              Clipboard.setData(ClipboardData(text: message.text ?? '')),
           messageTheme: widget.messageTheme,
           reverse: widget.reverse,
           showDeleteMessage: shouldShowDeleteAction,

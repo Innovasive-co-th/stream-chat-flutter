@@ -33,7 +33,12 @@ class BottomRow extends StatelessWidget {
     this.onThreadTap,
     this.usernameBuilder,
     this.sendingIndicatorBuilder,
+    this.timestamp, //* INNO NOTE
+    this.username, //* INNO NOTE
   });
+
+  final Widget Function(Message message)? timestamp; //* INNO NOTE
+  final Widget Function(Message message)? username; //* INNO NOTE
 
   /// {@macro messageIsDeleted}
   final bool isDeleted;
@@ -117,9 +122,11 @@ class BottomRow extends StatelessWidget {
     void Function(Message)? onThreadTap,
     Widget Function(BuildContext, Message)? usernameBuilder,
     Widget Function(BuildContext, Message)? sendingIndicatorBuilder,
+    Widget Function(Message message)? timestamp, //* INNO NOTE
+    Widget Function(Message message)? username, //* INNO NOTE
   }) =>
       BottomRow(
-        key: key ?? this.key,
+        key: key ?? key,
         isDeleted: isDeleted ?? this.isDeleted,
         message: message ?? this.message,
         showThreadReplyIndicator:
@@ -142,6 +149,8 @@ class BottomRow extends StatelessWidget {
         usernameBuilder: usernameBuilder ?? this.usernameBuilder,
         sendingIndicatorBuilder:
             sendingIndicatorBuilder ?? this.sendingIndicatorBuilder,
+        timestamp: timestamp ?? this.timestamp, //* INNO NOTE
+        username: username ?? this.username, //* INNO NOTE
       );
 
   @override
@@ -175,8 +184,8 @@ class BottomRow extends StatelessWidget {
         }
         return onThreadTap!(message);
       } catch (e, stk) {
-        print(e);
-        print(stk);
+        debugPrint('$e');
+        debugPrint('$stk');
         // ignore: avoid_returning_null_for_void
         return null;
       }
@@ -185,25 +194,10 @@ class BottomRow extends StatelessWidget {
     const usernameKey = Key('username');
 
     children.addAll([
-      if (showUsername)
-        WidgetSpan(
-          child: usernameBuilder?.call(context, message) ??
-              Username(
-                key: usernameKey,
-                message: message,
-                messageTheme: messageTheme,
-              ),
-        ),
-      if (showTimeStamp)
-        WidgetSpan(
-          child: Text(
-            Jiffy(message.createdAt.toLocal()).jm,
-            style: messageTheme.createdAtStyle,
-          ),
-        ),
       if (showSendingIndicator)
         WidgetSpan(
           child: sendingIndicatorBuilder?.call(context, message) ??
+              //* INNO NOTE: edit this.
               SendingIndicatorWrapper(
                 messageTheme: messageTheme,
                 message: message,
@@ -211,6 +205,59 @@ class BottomRow extends StatelessWidget {
                 streamChat: streamChat,
                 streamChatTheme: streamChatTheme,
               ),
+        ),
+
+      if (showTimeStamp && !showUsername)
+        //* INNO NOTE : custom message time stamp.
+        WidgetSpan(
+          child: timestamp?.call(message) ??
+              Text(
+                Jiffy(message.createdAt.toLocal()).jm,
+                style: messageTheme.createdAtStyle,
+              ),
+        ),
+
+      //* INNO NOTE : custom message time stamp.
+      if (showUsername)
+        WidgetSpan(
+          child: Row(
+            children: [
+              if (showTimeStamp)
+                //* INNO NOTE : custom message time stamp.
+                timestamp?.call(message) ??
+                    Text(
+                      Jiffy(message.createdAt.toLocal()).jm,
+                      style: messageTheme.createdAtStyle,
+                    ),
+
+              //
+              Flexible(
+                child: Row(
+                  children: [
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: SizedBox(
+                        key: usernameKey,
+                        child: usernameBuilder?.call(context, message) ??
+                            username?.call(message) ??
+                            Username(
+                              key: usernameKey,
+                              message: message,
+                              messageTheme: messageTheme,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          // Username(
+          //   key: usernameKey,
+          //   message: message,
+          //   messageTheme: messageTheme,
+          // ),
         ),
     ]);
 
@@ -268,7 +315,8 @@ class BottomRow extends StatelessWidget {
       TextSpan(
         children: [
           ...children,
-        ].insertBetween(const WidgetSpan(child: SizedBox(width: 8))),
+        ],
+        // .insertBetween(const WidgetSpan(child: SizedBox(width: 8))),
       ),
       maxLines: 1,
       textAlign: reverse ? TextAlign.right : TextAlign.left,

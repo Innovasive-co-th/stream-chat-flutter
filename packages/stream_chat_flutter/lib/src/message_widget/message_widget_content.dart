@@ -25,6 +25,8 @@ class MessageWidgetContent extends StatelessWidget {
   /// {@macro messageWidgetContent}
   const MessageWidgetContent({
     super.key,
+    this.timestamp, //* INNO NOTE
+    this.username, //* INNO NOTE
     required this.reverse,
     required this.isPinned,
     required this.showPinHighlight,
@@ -85,6 +87,9 @@ class MessageWidgetContent extends StatelessWidget {
           bottomRowBuilder == null || bottomRowBuilderWithDefaultWidget == null,
           'You can only use one of the two bottom row builders',
         );
+
+  final Widget Function(Message message)? timestamp; //* INNO NOTE
+  final Widget Function(Message message)? username; //* INNO NOTE
 
   /// {@macro reverse}
   final bool reverse;
@@ -263,12 +268,19 @@ class MessageWidgetContent extends StatelessWidget {
                       if (!reverse &&
                           showUserAvatar == DisplayWidget.show &&
                           message.user != null) ...[
-                        UserAvatarTransform(
-                          onUserAvatarTap: onUserAvatarTap,
-                          userAvatarBuilder: userAvatarBuilder,
-                          translateUserAvatar: translateUserAvatar,
-                          messageTheme: messageTheme,
-                          message: message,
+                        //* INNO NOTE: edit this.
+                        Container(
+                          margin: EdgeInsets.zero,
+                          //* INNO NOTE: inno edit
+                          child:
+                              userAvatarBuilder?.call(context, message.user!) ??
+                                  UserAvatarTransform(
+                                    onUserAvatarTap: onUserAvatarTap,
+                                    userAvatarBuilder: userAvatarBuilder,
+                                    translateUserAvatar: translateUserAvatar,
+                                    messageTheme: messageTheme,
+                                    message: message,
+                                  ),
                         ),
                         const SizedBox(width: 4),
                       ],
@@ -332,7 +344,9 @@ class MessageWidgetContent extends StatelessWidget {
                                           messageTheme: messageTheme,
                                         ),
                                       )
-                                    : MessageCard(
+                                    :
+                                    //* INNO NOTE: edit this.
+                                    MessageCard(
                                         message: message,
                                         isFailedState: isFailedState,
                                         showUserAvatar: showUserAvatar,
@@ -378,11 +392,13 @@ class MessageWidgetContent extends StatelessWidget {
                       if (reverse &&
                           showUserAvatar == DisplayWidget.show &&
                           message.user != null) ...[
-                        UserAvatarTransform(
-                          translateUserAvatar: translateUserAvatar,
-                          messageTheme: messageTheme,
-                          message: message,
-                        ),
+                        // * NOTE: inno edit
+                        userAvatarBuilder?.call(context, message.user!) ??
+                            UserAvatarTransform(
+                              translateUserAvatar: translateUserAvatar,
+                              messageTheme: messageTheme,
+                              message: message,
+                            ),
                         const SizedBox(width: 4),
                       ],
                       if (showUserAvatar == DisplayWidget.hide)
@@ -486,6 +502,8 @@ class MessageWidgetContent extends StatelessWidget {
       streamChat: streamChat,
       hasNonUrlAttachments: hasNonUrlAttachments,
       usernameBuilder: usernameBuilder,
+      timestamp: timestamp, //* INNO NOTE
+      username: username, //* INNO NOTE
     );
 
     if (bottomRowBuilder != null) {

@@ -42,8 +42,8 @@ enum SpacingType {
 /// ```dart
 /// class ChannelPage extends StatelessWidget {
 ///   const ChannelPage({
-///     Key? key,
-///   }) : super(key: key);
+///     super.key,
+///   });
 ///
 ///   @override
 ///   Widget build(BuildContext context) {
@@ -117,7 +117,30 @@ class StreamMessageListView extends StatefulWidget {
     this.paginationLoadingIndicatorBuilder,
     this.keyboardDismissBehavior = ScrollViewKeyboardDismissBehavior.onDrag,
     this.spacingWidgetBuilder = _defaultSpacingWidgetBuilder,
+    this.isShowOtherMemberUsername = true, //* INNO NOTE
+    this.customAttachmentBuilder, //* INNO NOTE
+    this.userAvatarBuilder, //* INNO NOTE
+    this.checkIsCustomAttachment, //* INNO NOTE
+    this.ownMessageTheme, //* INNO NOTE
+    this.otherMessageTheme, //* INNO NOTE
+    this.timestamp, //* INNO NOTE
+    this.username, //* INNO NOTE
   });
+
+  final bool Function(List<Attachment> attachments)?
+      checkIsCustomAttachment; //* INNO NOTE
+  final StreamMessageThemeData Function(
+    StreamMessageThemeData theme,
+    List<Attachment> attachments,
+  )? ownMessageTheme; //* INNO NOTE
+  final StreamMessageThemeData Function(StreamMessageThemeData theme)?
+      otherMessageTheme; //* INNO NOTE
+  final Widget Function(Message message)? timestamp; //* INNO NOTE
+  final Widget Function(Message message)? username; //* INNO NOTE
+  final bool isShowOtherMemberUsername; //* INNO NOTE
+  final Map<String, AttachmentBuilder>? customAttachmentBuilder; //* INNO NOTE
+  final Widget Function(BuildContext context, User user)?
+      userAvatarBuilder; //* INNO NOTE
 
   /// [ScrollViewKeyboardDismissBehavior] the defines how this [PositionedList] will
   /// dismiss the keyboard automatically.
@@ -278,7 +301,7 @@ class StreamMessageListView extends StatefulWidget {
   }
 
   @override
-  _StreamMessageListViewState createState() => _StreamMessageListViewState();
+  State<StreamMessageListView> createState() => _StreamMessageListViewState();
 }
 
 class _StreamMessageListViewState extends State<StreamMessageListView> {
@@ -878,6 +901,8 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
         members.firstWhereOrNull((e) => e.user!.id == currentUser!.id);
 
     final defaultMessageWidget = StreamMessageWidget(
+      timestamp: widget.timestamp,
+      username: widget.username,
       showReplyMessage: false,
       showResendMessage: false,
       showThreadReplyMessage: false,
@@ -886,6 +911,7 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
       showEditMessage: false,
       message: message,
       reverse: isMyMessage,
+      userAvatarBuilder: widget.userAvatarBuilder,
       showUsername: !isMyMessage,
       padding: const EdgeInsets.all(8),
       showSendingIndicator: false,
@@ -1062,11 +1088,17 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
     final showUsername = !isMyMessage &&
         (!isThreadMessage || _isThreadConversation) &&
         !hasReplies &&
-        (timeDiff >= 1 || !isNextUserSame);
+        (timeDiff >= 1 || !isNextUserSame) &&
+        widget.isShowOtherMemberUsername; //* INNO NOTE: edit this.
 
+    // * INNO NOTE: edit this
+    final isCustomAttachment =
+        widget.checkIsCustomAttachment?.call(message.attachments) ?? false;
+    // * INNO NOTE: edit this
+    // TODO: wait invest why showUserAvatar is render message wider than hide
     final showUserAvatar = isMyMessage
         ? DisplayWidget.gone
-        : (timeDiff >= 1 || !isNextUserSame)
+        : (timeDiff >= 1 || !isNextUserSame) || isCustomAttachment
             ? DisplayWidget.show
             : DisplayWidget.hide;
 
@@ -1085,22 +1117,50 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
             ? BorderSide.none
             : null;
 
-    final currentUser = StreamChat.of(context).currentUser;
-    final members = StreamChannel.of(context).channel.state?.members ?? [];
-    final currentUserMember =
-        members.firstWhereOrNull((e) => e.user!.id == currentUser!.id);
+    //* INNO NOTE: edit this.
+    // final currentUser = StreamChat.of(context).currentUser;
+    // final members = StreamChannel.of(context).channel.state?.members ?? [];
+    // final currentUserMember = members.firstWhereOrNull((e) => e.user!.id == currentUser!.id);
+
+    // * INNO NOTE: edit this in case when truncate channel (soft delete chat history) it will not mark read any message
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if ((((streamChannel?.channel.extraData['last_time_truncate_at'] ?? '')
+                  as String)
+              .toString()
+              .isNotEmpty) &&
+          unreadCount > 0) {
+        await StreamChannel.of(context).channel.markRead();
+        await StreamChannel.of(context).channel.updatePartial(set: {
+          'last_time_truncate_at': '',
+        });
+      }
+    });
 
     Widget messageWidget = StreamMessageWidget(
+      timestamp: widget.timestamp,
+      username: widget.username,
       message: message,
       reverse: isMyMessage,
-      showReactions: !message.isDeleted,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      showReactions: false, // !message.isDeleted,
+      showCopyMessage: false,
+      showReplyMessage: false,
+      showPinHighlight: false,
+      showResendMessage: false,
+      userAvatarBuilder: widget.userAvatarBuilder,
       showInChannelIndicator: showInChannelIndicator,
       showThreadReplyIndicator: showThreadReplyIndicator,
       showUsername: showUsername,
       showTimestamp: showTimeStamp,
       showSendingIndicator: showSendingIndicator,
       showUserAvatar: showUserAvatar,
+      showPinButton:
+          false, //  currentUserMember != null && _userPermissions.contains(PermissionType.pinMessage),
+      showEditMessage: false, //isMyMessage,
+      showDeleteMessage: false, // isMyMessage,
+      showThreadReplyMessage:
+          false, // !isThreadMessage && streamChannel?.channel.ownCapabilities.contains(PermissionType.sendReply) == true,
+      showFlagButton: false, // !isMyMessage,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       onQuotedMessageTap: (quotedMessageId) async {
         if (messages.map((e) => e.id).contains(quotedMessageId)) {
           final index = messages.indexWhere((m) => m.id == quotedMessageId);
@@ -1119,15 +1179,9 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
           });
         }
       },
-      showEditMessage: isMyMessage,
-      showDeleteMessage: isMyMessage,
-      showThreadReplyMessage: !isThreadMessage &&
-          streamChannel?.channel.ownCapabilities
-                  .contains(PermissionType.sendReply) ==
-              true,
-      showFlagButton: !isMyMessage,
       borderSide: borderSide,
       onThreadTap: _onThreadTap,
+      customAttachmentBuilders: widget.customAttachmentBuilder,
       attachmentBorderRadiusGeometry: BorderRadius.only(
         topLeft: Radius.circular(attachmentBorderRadius),
         bottomLeft: isMyMessage
@@ -1150,38 +1204,39 @@ class _StreamMessageListViewState extends State<StreamMessageListView> {
       ),
       attachmentPadding: EdgeInsets.all(hasFileAttachment ? 4 : 2),
       borderRadiusGeometry: BorderRadius.only(
-        topLeft: const Radius.circular(16),
-        bottomLeft: isMyMessage
-            ? const Radius.circular(16)
+        topLeft: const Radius.circular(20),
+        bottomLeft: isMyMessage || isCustomAttachment
+            ? const Radius.circular(20)
             : Radius.circular(
                 (timeDiff >= 1 || !isNextUserSame) &&
                         !(hasReplies || isThreadMessage)
-                    ? 0
-                    : 16,
+                    ? 4
+                    : 20,
               ),
-        topRight: const Radius.circular(16),
+        topRight: const Radius.circular(20),
         bottomRight: isMyMessage
             ? Radius.circular(
                 (timeDiff >= 1 || !isNextUserSame) &&
                         !(hasReplies || isThreadMessage)
-                    ? 0
-                    : 16,
+                    ? 4
+                    : 20,
               )
-            : const Radius.circular(16),
+            : const Radius.circular(20),
       ),
       textPadding: EdgeInsets.symmetric(
         vertical: 8,
         horizontal: isOnlyEmoji ? 0 : 16.0,
       ),
       messageTheme: isMyMessage
-          ? _streamTheme.ownMessageTheme
-          : _streamTheme.otherMessageTheme,
+          ? widget.ownMessageTheme
+                  ?.call(_streamTheme.ownMessageTheme, message.attachments) ??
+              _streamTheme.ownMessageTheme
+          : widget.otherMessageTheme?.call(_streamTheme.otherMessageTheme) ??
+              _streamTheme.otherMessageTheme,
       onMessageTap: (message) {
         widget.onMessageTap?.call(message);
         FocusScope.of(context).unfocus();
       },
-      showPinButton: currentUserMember != null &&
-          _userPermissions.contains(PermissionType.pinMessage),
     );
 
     if (widget.messageBuilder != null) {

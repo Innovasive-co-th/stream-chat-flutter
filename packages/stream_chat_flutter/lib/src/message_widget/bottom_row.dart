@@ -35,10 +35,31 @@ class BottomRow extends StatelessWidget {
     this.sendingIndicatorBuilder,
     this.timestamp, //* INNO NOTE
     this.username, //* INNO NOTE
+    this.attachmentsUploadProgressTextStyle, //* INNO NOTE
+    this.uploadRemainingIndicatorBuilder, //* INNO NOTE
+    this.messageReadBuilder, //* INNO NOTE
+    this.sendedAndUnreadWordingWidget, //* INNO NOTE
+    this.readedIndicatorBuilder, //* INNO NOTE
+    this.sendedIndicatorBuilder, //* INNO NOTE
+    this.sendingOrUpdatingIndicatorBuilder, //* INNO NOTE
+    this.failedOrFailedUpdateIndicatorBuilder, //* INNO NOTE
+    this.customConditionSendingIndicatorBuilder, //* INNO NOTE
   });
 
   final Widget Function(Message message)? timestamp; //* INNO NOTE
   final Widget Function(Message message)? username; //* INNO NOTE
+  final TextStyle? attachmentsUploadProgressTextStyle; //* INNO NOTE
+  final Widget Function(Message message)? uploadRemainingIndicatorBuilder; //* INNO NOTE
+  final Widget Function(Message message, int memberCount, Iterable<Read> readList, Widget child)?
+      messageReadBuilder; //* INNO NOTE
+  final Widget Function(Message message, Widget child)? sendedAndUnreadWordingWidget; //* INNO NOTE
+  final Widget Function(Message message)? readedIndicatorBuilder; //* INNO NOTE
+  final Widget Function(Message message)? sendedIndicatorBuilder; //* INNO NOTE
+  final Widget Function(Message message)? sendingOrUpdatingIndicatorBuilder; //* INNO NOTE
+  final Widget Function(Message message, Channel? channel)?
+      failedOrFailedUpdateIndicatorBuilder; //* INNO NOTE
+  final Widget? Function(Message message, Widget child)?
+      customConditionSendingIndicatorBuilder; //* INNO NOTE
 
   /// {@macro messageIsDeleted}
   final bool isDeleted;
@@ -124,13 +145,24 @@ class BottomRow extends StatelessWidget {
     Widget Function(BuildContext, Message)? sendingIndicatorBuilder,
     Widget Function(Message message)? timestamp, //* INNO NOTE
     Widget Function(Message message)? username, //* INNO NOTE
+    Widget Function(Message message)? uploadRemainingIndicatorBuilder, //* INNO NOTE
+    TextStyle? attachmentsUploadProgressTextStyle, //* INNO NOTE
+    Widget Function(Message message, int memberCount, Iterable<Read> readList, Widget child)?
+        messageReadBuilder, //* INNO NOTE
+    Widget Function(Message message, Widget child)? sendedAndUnreadWordingWidget, //* INNO NOTE
+    Widget Function(Message message)? readedIndicatorBuilder, //* INNO NOTE
+    Widget Function(Message message)? sendedIndicatorBuilder, //* INNO NOTE
+    Widget Function(Message message)? sendingOrUpdatingIndicatorBuilder, //* INNO NOTE
+    Widget Function(Message message, Channel? channel)?
+        failedOrFailedUpdateIndicatorBuilder, //* INNO NOTE
+    Widget? Function(Message message, Widget child)?
+        customConditionSendingIndicatorBuilder, //* INNO NOTE
   }) =>
       BottomRow(
         key: key ?? key,
         isDeleted: isDeleted ?? this.isDeleted,
         message: message ?? this.message,
-        showThreadReplyIndicator:
-            showThreadReplyIndicator ?? this.showThreadReplyIndicator,
+        showThreadReplyIndicator: showThreadReplyIndicator ?? this.showThreadReplyIndicator,
         showInChannel: showInChannel ?? this.showInChannel,
         showTimeStamp: showTimeStamp ?? this.showTimeStamp,
         showUsername: showUsername ?? this.showUsername,
@@ -143,14 +175,27 @@ class BottomRow extends StatelessWidget {
         streamChatTheme: streamChatTheme ?? this.streamChatTheme,
         hasNonUrlAttachments: hasNonUrlAttachments ?? this.hasNonUrlAttachments,
         streamChat: streamChat ?? this.streamChat,
-        deletedBottomRowBuilder:
-            deletedBottomRowBuilder ?? this.deletedBottomRowBuilder,
+        deletedBottomRowBuilder: deletedBottomRowBuilder ?? this.deletedBottomRowBuilder,
         onThreadTap: onThreadTap ?? this.onThreadTap,
         usernameBuilder: usernameBuilder ?? this.usernameBuilder,
-        sendingIndicatorBuilder:
-            sendingIndicatorBuilder ?? this.sendingIndicatorBuilder,
+        sendingIndicatorBuilder: sendingIndicatorBuilder ?? this.sendingIndicatorBuilder,
         timestamp: timestamp ?? this.timestamp, //* INNO NOTE
         username: username ?? this.username, //* INNO NOTE
+        attachmentsUploadProgressTextStyle: attachmentsUploadProgressTextStyle ??
+            this.attachmentsUploadProgressTextStyle, //* INNO NOTE
+        uploadRemainingIndicatorBuilder:
+            uploadRemainingIndicatorBuilder ?? this.uploadRemainingIndicatorBuilder, //* INNO NOTE
+        messageReadBuilder: messageReadBuilder ?? this.messageReadBuilder, //* INNO NOTE
+        sendedAndUnreadWordingWidget:
+            sendedAndUnreadWordingWidget ?? this.sendedAndUnreadWordingWidget, //* INNO NOTE
+        readedIndicatorBuilder: readedIndicatorBuilder ?? this.readedIndicatorBuilder, //* INNO NOTE
+        sendedIndicatorBuilder: sendedIndicatorBuilder ?? this.sendedIndicatorBuilder, //* INNO NOTE
+        sendingOrUpdatingIndicatorBuilder: sendingOrUpdatingIndicatorBuilder ??
+            this.sendingOrUpdatingIndicatorBuilder, //* INNO NOTE
+        failedOrFailedUpdateIndicatorBuilder: failedOrFailedUpdateIndicatorBuilder ??
+            this.failedOrFailedUpdateIndicatorBuilder, //* INNO NOTE
+        customConditionSendingIndicatorBuilder: customConditionSendingIndicatorBuilder ??
+            this.customConditionSendingIndicatorBuilder, //* INNO NOTE
       );
 
   @override
@@ -204,6 +249,17 @@ class BottomRow extends StatelessWidget {
                 hasNonUrlAttachments: hasNonUrlAttachments,
                 streamChat: streamChat,
                 streamChatTheme: streamChatTheme,
+                uploadRemainingIndicatorBuilder: uploadRemainingIndicatorBuilder, //* INNO NOTE
+                attachmentsUploadProgressTextStyle:
+                    attachmentsUploadProgressTextStyle, //* INNO NOTE
+                messageReadBuilder: messageReadBuilder, //* INNO NOTE
+                sendedAndUnreadWordingWidget: sendedAndUnreadWordingWidget, //* INNO NOTE
+                readedIndicatorBuilder: readedIndicatorBuilder, //* INNO NOTE
+                sendedIndicatorBuilder: sendedIndicatorBuilder, //* INNO NOTE
+                sendingOrUpdatingIndicatorBuilder: sendingOrUpdatingIndicatorBuilder, //* INNO NOTE
+                failedOrFailedUpdateIndicatorBuilder:
+                    failedOrFailedUpdateIndicatorBuilder, //* INNO NOTE
+                customConditionSendingIndicatorBuilder: customConditionSendingIndicatorBuilder,
               ),
         ),
 
@@ -269,8 +325,7 @@ class BottomRow extends StatelessWidget {
         WidgetSpan(
           child: Padding(
             padding: EdgeInsets.only(
-              bottom: context.textScaleFactor *
-                  ((messageTheme.repliesStyle?.fontSize ?? 1) / 2),
+              bottom: context.textScaleFactor * ((messageTheme.repliesStyle?.fontSize ?? 1) / 2),
             ),
             child: CustomPaint(
               size: const Size(16, 32) * context.textScaleFactor,

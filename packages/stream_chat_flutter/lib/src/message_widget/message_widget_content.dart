@@ -27,6 +27,15 @@ class MessageWidgetContent extends StatelessWidget {
     super.key,
     this.timestamp, //* INNO NOTE
     this.username, //* INNO NOTE
+    this.attachmentsUploadProgressTextStyle, //* INNO NOTE
+    this.uploadRemainingIndicatorBuilder, //* INNO NOTE
+    this.messageReadBuilder, //* INNO NOTE
+    this.sendedAndUnreadWordingWidget, //* INNO NOTE
+    this.readedIndicatorBuilder, //* INNO NOTE
+    this.sendedIndicatorBuilder, //* INNO NOTE
+    this.sendingOrUpdatingIndicatorBuilder, //* INNO NOTE
+    this.failedOrFailedUpdateIndicatorBuilder, //* INNO NOTE
+    this.customConditionSendingIndicatorBuilder, //* INNO NOTE
     required this.reverse,
     required this.isPinned,
     required this.showPinHighlight,
@@ -90,6 +99,18 @@ class MessageWidgetContent extends StatelessWidget {
 
   final Widget Function(Message message)? timestamp; //* INNO NOTE
   final Widget Function(Message message)? username; //* INNO NOTE
+  final TextStyle? attachmentsUploadProgressTextStyle; //* INNO NOTE
+  final Widget Function(Message message)? uploadRemainingIndicatorBuilder; //* INNO NOTE
+  final Widget Function(Message message, int memberCount, Iterable<Read> readList, Widget child)?
+      messageReadBuilder; //* INNO NOTE
+  final Widget Function(Message message, Widget child)? sendedAndUnreadWordingWidget; //* INNO NOTE
+  final Widget Function(Message message)? readedIndicatorBuilder; //* INNO NOTE
+  final Widget Function(Message message)? sendedIndicatorBuilder; //* INNO NOTE
+  final Widget Function(Message message)? sendingOrUpdatingIndicatorBuilder; //* INNO NOTE
+  final Widget Function(Message message, Channel? channel)?
+      failedOrFailedUpdateIndicatorBuilder; //* INNO NOTE
+  final Widget? Function(Message message, Widget child)?
+      customConditionSendingIndicatorBuilder; //* INNO NOTE
 
   /// {@macro reverse}
   final bool reverse;
@@ -226,15 +247,12 @@ class MessageWidgetContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment:
-          reverse ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: reverse ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Stack(
           clipBehavior: Clip.none,
-          alignment: reverse
-              ? AlignmentDirectional.bottomEnd
-              : AlignmentDirectional.bottomStart,
+          alignment: reverse ? AlignmentDirectional.bottomEnd : AlignmentDirectional.bottomStart,
           children: [
             if (showBottomRow)
               Padding(
@@ -250,13 +268,10 @@ class MessageWidgetContent extends StatelessWidget {
                 bottom: isPinned && showPinHighlight ? 8.0 : 0.0,
               ),
               child: Column(
-                crossAxisAlignment:
-                    reverse ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                crossAxisAlignment: reverse ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (message.pinned &&
-                      message.pinnedBy != null &&
-                      showPinHighlight)
+                  if (message.pinned && message.pinnedBy != null && showPinHighlight)
                     PinnedMessage(
                       pinnedBy: message.pinnedBy!,
                       currentUser: streamChat.currentUser!,
@@ -272,20 +287,18 @@ class MessageWidgetContent extends StatelessWidget {
                         Container(
                           margin: EdgeInsets.zero,
                           //* INNO NOTE: inno edit
-                          child:
-                              userAvatarBuilder?.call(context, message.user!) ??
-                                  UserAvatarTransform(
-                                    onUserAvatarTap: onUserAvatarTap,
-                                    userAvatarBuilder: userAvatarBuilder,
-                                    translateUserAvatar: translateUserAvatar,
-                                    messageTheme: messageTheme,
-                                    message: message,
-                                  ),
+                          child: userAvatarBuilder?.call(context, message.user!) ??
+                              UserAvatarTransform(
+                                onUserAvatarTap: onUserAvatarTap,
+                                userAvatarBuilder: userAvatarBuilder,
+                                translateUserAvatar: translateUserAvatar,
+                                messageTheme: messageTheme,
+                                message: message,
+                              ),
                         ),
                         const SizedBox(width: 4),
                       ],
-                      if (showUserAvatar == DisplayWidget.hide)
-                        SizedBox(width: avatarWidth + 4),
+                      if (showUserAvatar == DisplayWidget.hide) SizedBox(width: avatarWidth + 4),
                       Flexible(
                         child: PortalTarget(
                           visible: isMobileDevice && showReactions,
@@ -317,11 +330,7 @@ class MessageWidgetContent extends StatelessWidget {
                               Padding(
                                 padding: showReactions
                                     ? EdgeInsets.only(
-                                        top: message.reactionCounts
-                                                    ?.isNotEmpty ==
-                                                true
-                                            ? 18
-                                            : 0,
+                                        top: message.reactionCounts?.isNotEmpty == true ? 18 : 0,
                                       )
                                     : EdgeInsets.zero,
                                 child: (message.isDeleted && !isFailedState)
@@ -337,8 +346,7 @@ class MessageWidgetContent extends StatelessWidget {
                                                   : 4.0,
                                         ),
                                         child: StreamDeletedMessage(
-                                          borderRadiusGeometry:
-                                              borderRadiusGeometry,
+                                          borderRadiusGeometry: borderRadiusGeometry,
                                           borderSide: borderSide,
                                           shape: shape,
                                           messageTheme: messageTheme,
@@ -353,8 +361,7 @@ class MessageWidgetContent extends StatelessWidget {
                                         messageTheme: messageTheme,
                                         hasQuotedMessage: hasQuotedMessage,
                                         hasUrlAttachments: hasUrlAttachments,
-                                        hasNonUrlAttachments:
-                                            hasNonUrlAttachments,
+                                        hasNonUrlAttachments: hasNonUrlAttachments,
                                         isOnlyEmoji: isOnlyEmoji,
                                         isGiphy: isGiphy,
                                         attachmentBuilders: attachmentBuilders,
@@ -365,8 +372,7 @@ class MessageWidgetContent extends StatelessWidget {
                                         onMentionTap: onMentionTap,
                                         onLinkTap: onLinkTap,
                                         textBuilder: textBuilder,
-                                        borderRadiusGeometry:
-                                            borderRadiusGeometry,
+                                        borderRadiusGeometry: borderRadiusGeometry,
                                         borderSide: borderSide,
                                         shape: shape,
                                       ),
@@ -401,8 +407,7 @@ class MessageWidgetContent extends StatelessWidget {
                             ),
                         const SizedBox(width: 4),
                       ],
-                      if (showUserAvatar == DisplayWidget.hide)
-                        SizedBox(width: avatarWidth + 4),
+                      if (showUserAvatar == DisplayWidget.hide) SizedBox(width: avatarWidth + 4),
                     ],
                   ),
                   if (isDesktopDeviceOrWeb && shouldShowReactions) ...[
@@ -467,10 +472,9 @@ class MessageWidgetContent extends StatelessWidget {
             showReactionPickerIndicator:
                 showReactions && (message.status == MessageSendingStatus.sent),
             showPinHighlight: false,
-            showUserAvatar:
-                message.user!.id == channel.client.state.currentUser!.id
-                    ? DisplayWidget.gone
-                    : DisplayWidget.show,
+            showUserAvatar: message.user!.id == channel.client.state.currentUser!.id
+                ? DisplayWidget.gone
+                : DisplayWidget.show,
           ),
           onUserAvatarTap: onUserAvatarTap,
           messageTheme: messageTheme,
@@ -504,6 +508,15 @@ class MessageWidgetContent extends StatelessWidget {
       usernameBuilder: usernameBuilder,
       timestamp: timestamp, //* INNO NOTE
       username: username, //* INNO NOTE
+      attachmentsUploadProgressTextStyle: attachmentsUploadProgressTextStyle, //* INNO NOTE
+      uploadRemainingIndicatorBuilder: uploadRemainingIndicatorBuilder, //* INNO NOTE
+      messageReadBuilder: messageReadBuilder, //* INNO NOTE
+      sendedAndUnreadWordingWidget: sendedAndUnreadWordingWidget, //* INNO NOTE
+      readedIndicatorBuilder: readedIndicatorBuilder, //* INNO NOTE
+      sendedIndicatorBuilder: sendedIndicatorBuilder, //* INNO NOTE
+      sendingOrUpdatingIndicatorBuilder: sendingOrUpdatingIndicatorBuilder, //* INNO NOTE
+      failedOrFailedUpdateIndicatorBuilder: failedOrFailedUpdateIndicatorBuilder, //* INNO NOTE
+      customConditionSendingIndicatorBuilder: customConditionSendingIndicatorBuilder, //* INNO NOTE
     );
 
     if (bottomRowBuilder != null) {
